@@ -1,17 +1,18 @@
 #include <stdlib.h> 
 #include <stdio.h>
+#include <string.h>
 
-int strcmp(char *str1);
-int login();
+int login(char *user,int senha)
 
 int main(){
-    int escolha, usuario_logado;
-    login();
-    /*printf("1 - Licoes");
-    printf("2 - Exercicios");
-    printf("3 - Avaliacao");
-    printf("4 - Ranker");
-    printf("digite o comando");
+    int escolha, user_senha;
+    char user_name[50];
+    
+    printf("1 - Licoes \n");
+    printf("2 - Exercicios \n");
+    printf("3 - Avaliacao \n");
+    printf("4 - Rank \n");
+    printf("digite o comando: ");
     scanf("%i", &escolha);
     switch(escolha){
         case 1:
@@ -22,29 +23,25 @@ int main(){
         break;
         default:
             printf("comando invalido");
-    }*/
+    }
     return 0;
 }
 
 
-int login(/*char *user,int senha*/){
-    char user[3][50] = {
+int login(char *user,int senha){
+    char user_list[3][50] = {
         "joao",
         "guilherme",
         "wilian",
     };
 
-    int senha[3] = {
+    int senha_list[3] = {
         1234567
     };
 
     for(int i = 0; i < 3; i++){
-        strcmp(user[i]);
+        strcmp(user_list[i], user);
     }
     return 0;
 }
 
-int strcmpc(char *str1 /*, char *str2*/){
-    
-    return 0;
-}
