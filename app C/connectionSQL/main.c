@@ -5,6 +5,7 @@
 #include <windows.h>
 #include "mysql\include\mysql.h"
 
+void inserir(MYSQL *conexao);
 void erro(MYSQL *conexao){
     fprintf(stderr,  "\n%s\n", mysql_error(conexao));
     mysql_close(conexao);
@@ -48,6 +49,7 @@ int login(MYSQL *conexao, char *registrer, char *senha){
     } 
     mysql_free_result(resultado);
 }
+
 int main(){
     MYSQL *conexao = obterconexao();
     char nome[100], senha[100];
@@ -63,8 +65,14 @@ int main(){
 }
 
 
-
 void inserir(MYSQL *conexao){
-    char query[100];
-    
+
+    char query[750];
+    sprintf(query, "INSERT INTO usuario(nome, senha) VELUES (%s, %s)");
+    if(mysql_query(query)){
+        erro(conexao);
+    }
+    else{
+        printf("aluno cadastrado")
+    }
 }
