@@ -70,7 +70,7 @@ void inserir(MYSQL *conexao){ // adicionar alunos na tabela
     }
 }
 
-void remover(MYSQL *conexao){
+int remover(MYSQL *conexao){
     MYSQL_RES *res;
     MYSQL_ROW *row;
     int ra;
@@ -82,23 +82,66 @@ void remover(MYSQL *conexao){
         erro(conexao);
     }
     res = mysql_store_result(conexao);
-    while((row = mysql_fetch_row(res)) != NULL){
-        printf("RA: %i \n", row[0]);
-        printf("nome: %s \n", row[1]);
+    if((row = mysql_fetch_row(res)) != NULL){
+        while((row = mysql_fetch_row(res)) != NULL){
+            printf("RA: %s \n", row[0]);
+            printf("nome: %s \n", row[1]);
+        }
     }
+    else{
+        printf("aluno nao encontrado");
+        return 1;
+    }
+
     mysql_free_result(res);
     sprintf(query, "DELETE FROM aluno WHERE ra = %i", ra);
-    printf("gostaria de apagar o aluno (s/n)\n");
-    scanf("%c", &resp);
+    printf("gostaria de apagar o aluno (s/n): ");
+    scanf("%c ", &resp);
     if(resp == "s"){
         if(mysql_query(conexao, query)){
-            erro(conexao);    
+            printf("erro nao remoção do aluno");
         }
         else{
             printf("aluno romovido");
+            return 0;
         }
     }
-    
+}
+void seach_aluno(MYSQL *conexao){
+    MYSQL_RES *res;
+    MYSQL_ROW *row;
+    int resp, ra, turma;
+    char query[750];
+    printf("1 - turma \n");
+    printf("2 - aluno \n");
+    printf("digite seu comando: ");
+    scanf("%i", &resp);
+    switch (resp){
+    case 1:
+        printf("digite a turma que deseja procurar: ");
+        scanf("%i", &turma);
+        sprintf(query, "SELECT ra, nome, email, idturma from aluno WHERE idturma = %i", turma);
+        break;
+    case 2:
+        printf("digite o RA do aluno: ");
+        scanf("%i", &ra);
+        sprintf(query, "SELECT ra, nome, email, idturma from aluno WHERE ra = %i", ra);
+        break;
+    default:
+        printf("comando invalido");
+        break;
+    }
+    if(mysql_query(conexao, query)){
+        erro(conexao);
+    }
+    res = mysql_use_result(conexao);
+    while((row = mysql_fetch_row(res)) != NULL){
+        printf("Ra:      %s \n", row[0]);
+        printf("nome:    %s \n", row[1]);
+        printf("email:   %s \n", row[2]);
+        printf("idturma: %s \n", row[3]);
+    }
+    mysql_free_result(res);
 }
 void verificacao_acesso(char *email, char *senha){
     if(email == NULL || senha == ""){
@@ -111,8 +154,10 @@ int main(){
     int navegacao;
     
     if(login(conexao) == 1){
-        printf("1-insirir aluno \n");
-        printf("2-remover aluno \n");
+        printf("1 - insirir aluno \n");
+        printf("2 - remover aluno \n");
+        printf("3 - procular aluno \n");
+        printf("digite seu comando: ");
         scanf("%i", &navegacao);
         switch (navegacao)
         {
@@ -121,6 +166,9 @@ int main(){
             break;
         case 2:
             remover(conexao);
+            break;
+        case 3:
+            seach_aluno(conexao);
             break;
         default:
             break;
