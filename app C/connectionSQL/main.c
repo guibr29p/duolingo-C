@@ -5,13 +5,11 @@
 #include <windows.h>
 #include "mysql\include\mysql.h"
 
-
 void erro(MYSQL *conexao){
     fprintf(stderr,  "\n%s\n", mysql_error(conexao));
     mysql_close(conexao);
     exit(1);
 }
-
 MYSQL *__stdcall obterconexao(){
     char *servidor = "127.0.0.1";
     char *usuario = "root";
@@ -30,7 +28,7 @@ MYSQL *__stdcall obterconexao(){
     }
 }
 
-int login(MYSQL *conexao){
+int login(MYSQL *conexao){ // login no app
     MYSQL_RES *resultado;
     MYSQL_ROW row;
     int encontrado = 0, RA;
@@ -70,44 +68,40 @@ void inserir(MYSQL *conexao){ // adicionar alunos na tabela
     }
 }
 
-int remover(MYSQL *conexao){
+int remover(MYSQL *conexao){ // remove aluno
     MYSQL_RES *res;
     MYSQL_ROW *row;
     int ra;
-    char query[250], resp;
+    char query[250], resp, *r;
+    r = &query;
     printf("digite o RA do aluno: ");
     scanf("%i", &ra);
-    sprintf(query, "SELECT ra, nome FROM aluno WHERE ra = %i", ra);
+    sprintf(r, "SELECT ra, nome FROM aluno WHERE ra = %i", ra);
     if(mysql_query(conexao, query)){
         erro(conexao);
     }
     res = mysql_store_result(conexao);
-    if((row = mysql_fetch_row(res)) != NULL){
-        while((row = mysql_fetch_row(res)) != NULL){
-            printf("RA: %s \n", row[0]);
-            printf("nome: %s \n", row[1]);
-        }
+    while((row = mysql_fetch_row(res)) != NULL){
+        printf("RA:   %s \n", row[0]);
+        printf("nome: %s \n", row[1]);
     }
-    else{
-        printf("aluno nao encontrado");
-        return 1;
-    }
-
     mysql_free_result(res);
-    sprintf(query, "DELETE FROM aluno WHERE ra = %i", ra);
+    sprintf(r, "DELETE FROM aluno WHERE ra = %i", ra);
     printf("gostaria de apagar o aluno (s/n): ");
     scanf("%c ", &resp);
-    if(resp == "s"){
-        if(mysql_query(conexao, query)){
-            printf("erro nao remoção do aluno");
-        }
-        else{
-            printf("aluno romovido");
-            return 0;
-        }
+    if(resp == 'n'){
+        return 1;
     }
+    else if(mysql_query(conexao, query)){
+        printf("erro aluno nao foi removido \n");
+    }
+    else{
+        printf("aluno romovido \n");
+    }
+    return 0;
 }
-void seach_aluno(MYSQL *conexao){
+
+void seach_aluno(MYSQL *conexao){ // procura na tabela aluno
     MYSQL_RES *res;
     MYSQL_ROW *row;
     int resp, ra, turma;
@@ -143,9 +137,10 @@ void seach_aluno(MYSQL *conexao){
     }
     mysql_free_result(res);
 }
-void verificacao_acesso(char *email, char *senha){
+
+void verificacao_acesso(char *email, char *senha){ // verificar se é o primeiro acesso
     if(email == NULL || senha == ""){
-        printf("1");
+        
     }
 }
 
