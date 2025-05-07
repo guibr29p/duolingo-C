@@ -88,8 +88,9 @@ int remover(MYSQL *conexao){ // remove aluno
     mysql_free_result(res);
     sprintf(r, "DELETE FROM aluno WHERE ra = %i", ra);
     printf("gostaria de apagar o aluno (s/n): ");
-    scanf("%c ", &resp);
+    scanf(" %c", &resp);
     if(resp == 'n'){
+        printf("aluno nao removido \n");
         return 1;
     }
     else if(mysql_query(conexao, query)){
