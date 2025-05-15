@@ -4,6 +4,11 @@
 #include <winsock2.h>
 #include <windows.h>
 #include "mysql\include\mysql.h"
+struct user_info
+{
+    int RA;
+    char nome[250];
+};
 
 void erro(MYSQL *conexao){
     fprintf(stderr,  "\n%s\n", mysql_error(conexao));
@@ -65,7 +70,7 @@ int login(MYSQL *conexao){ // login no app
     {
        printf("\nbem vindo %s \n", row[0]);
        verificacao_acesso(row[0], row[1]);
-       return encontrado = 1;
+       return type_login;
     } 
     mysql_free_result(resultado);
 }
@@ -124,7 +129,6 @@ int update(conexao){
         "telefone",
         "turma",
     };
-    
     printf("1 - %s \n", menu[0]);
     printf("2 - %s \n", menu[1]);
     printf("2 - %s \n", menu[2]);
@@ -135,8 +139,12 @@ int update(conexao){
     scanf("%i", ra);
     printf("digite o novo nome: ");
     fgets(new_name, 250, stdin);
-    sprintf(query, "Update aluno set %s = %s where ra = ", menu[escolha], new_name, ra);
-    fflush(stdin);
+    sprintf(query, "Update aluno set %s = %s where ra = %d", menu[escolha], new_name, ra);
+    
+    if(mysql_query(conexao, query)){
+        erro(conexao);
+    }
+    
 }
 int seach_aluno(MYSQL *conexao){ // procura na tabela aluno
     MYSQL_RES *res;
@@ -189,8 +197,9 @@ void verificacao_acesso(char *email, char *senha){ // verificar se é o primeiro
 
 int main(){
     MYSQL *conexao = obterconexao();
-    int navegacao, type_login;
-    if(login(conexao) == 1){
+    int navegacao, acesso_login;
+    acesso_login = login(conexao);
+    if(acesso_login == 2){
         printf("1 - insirir aluno  \n");
         printf("2 - remover aluno  \n");
         printf("3 - procular aluno \n");
@@ -210,7 +219,12 @@ int main(){
         default:
             break;
         }
-    } 
+    }
+    else if(acesso_login == 1){
+        // codigo aqui do aluno fazer as atividade e avaliaçoes
+    }
+    else{
+    }
     system("pause");
     return 0;
 }
