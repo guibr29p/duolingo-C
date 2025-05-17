@@ -4,17 +4,20 @@
 #include <winsock2.h>
 #include <windows.h>
 #include "mysql\include\mysql.h"
-struct user_info
-{
+struct user_now{
     int RA;
     char nome[250];
+    char email[250];
 };
+
+struct user_info user;
 
 void erro(MYSQL *conexao){
     fprintf(stderr,  "\n%s\n", mysql_error(conexao));
     mysql_close(conexao);
     exit(1);
 }
+
 MYSQL *__stdcall obterconexao(){
     char *servidor = "127.0.0.1";
     char *usuario = "root";
@@ -68,8 +71,9 @@ int login(MYSQL *conexao){ // login no app
     resultado = mysql_store_result(conexao);
     while((row = mysql_fetch_row(resultado)) != NULL)
     {
-       printf("\nbem vindo %s \n", row[0]);
        verificacao_acesso(row[0], row[1]);
+       sprintf(user.name, row[0])
+       user.ra = row[1]
        return type_login;
     } 
     mysql_free_result(resultado);
@@ -77,9 +81,13 @@ int login(MYSQL *conexao){ // login no app
 
 void inserir_aluno(MYSQL *conexao){ // adicionar alunos na tabela
     char nome[250], senha[100], resp, query[750];
+    int telefone;
     printf("insira o nome do aluno: ");
     scanf("%s", &nome);
-    sprintf(query, "INSERT INTO aluno(nome) VALUES ('%s')", nome);
+    printf("insira o email do aluno: ");
+    scanf("%s", email);
+    printf("insira ")
+    sprintf(query, "INSERT INTO aluno(nome, email, telefone) VALUES ('%s')", nome);
     if(mysql_query(conexao, query)){
         erro(conexao);
     }
@@ -91,39 +99,45 @@ void inserir_aluno(MYSQL *conexao){ // adicionar alunos na tabela
 int remover_aluno(MYSQL *conexao){ // remove aluno
     MYSQL_RES *res;
     MYSQL_ROW *row;
-    int ra;
+    int ra, count_remove;
     char query[250], resp, *r;
     r = &query;
-    printf("digite o RA do aluno: ");
-    scanf("%i", &ra);
-    sprintf(r, "SELECT ra, nome FROM aluno WHERE ra = %i", ra);
-    if(mysql_query(conexao, query)){
-        erro(conexao);
-    }
-    res = mysql_store_result(conexao);
-    while((row = mysql_fetch_row(res)) != NULL){
-        printf("RA:   %s \n", row[0]);
-        printf("nome: %s \n", row[1]);
-    }
-    mysql_free_result(res);
-    sprintf(r, "DELETE FROM aluno WHERE ra = %i", ra);
-    printf("gostaria de apagar o aluno (s/n): ");
-    scanf(" %c", &resp);
-    if(resp == 'n'){
-        printf("aluno nao removido \n");
-        return 1;
-    }
-    else if(mysql_query(conexao, query)){
-        printf("erro aluno nao foi removido \n");
-    }
-    else{
-        printf("aluno romovido \n");
+    printf("quantos alunos gostaria de remover?: ")
+    scanf("%d", &count_remove)
+    for(int i = 0, i < count_remove; i++){
+        printf("digite o RA do aluno: ");
+        scanf("%i", &ra);
+        sprintf(r, "SELECT ra, nome FROM aluno WHERE ra = %i", ra);
+        if(mysql_query(conexao, query)){
+            erro(conexao);
+        }
+        res = mysql_store_result(conexao);
+        while((row = mysql_fetch_row(res)) != NULL){
+            printf("RA:   %s \n", row[0]);
+            printf("nome: %s \n", row[1]);
+        }
+        mysql_free_result(res);
+        sprintf(r, "DELETE FROM aluno WHERE ra = %i", ra);
+        printf("gostaria de apagar o aluno (s/n): ");
+        scanf(" %c", &resp);
+        if(resp == 'n'){
+            printf("aluno nao removido \n");
+            return 1;
+        }
+        else if(mysql_query(conexao, query)){
+            printf("erro aluno nao foi removido \n");
+        }
+        else{
+            printf("aluno romovido \n");
+        }
     }
     return 0;
 }
 int update(conexao){
     int escolha, ra;
-    char cont, new_name[250], query[750], menu[4][10] = {
+    char cont, new_char[250], query[750];
+    int
+    const char *menu[] = {
         "nome", 
         "email",
         "telefone",
@@ -137,14 +151,33 @@ int update(conexao){
     scanf("%d", &escolha);
     printf("Digite o Ra do aluno");
     scanf("%i", ra);
-    printf("digite o novo nome: ");
-    fgets(new_name, 250, stdin);
-    sprintf(query, "Update aluno set %s = %s where ra = %d", menu[escolha], new_name, ra);
+    
+    switch(escolha){
+    case 1:
+        printf("digite o novo nome: ");
+        fgets(new_name, 250, stdin);
+        break;
+    case 2:
+        printf("digite o novo email: ");
+        scanf("%s", &email);
+        break;
+    default:
+        break;
+    }
+    if(escolha == 0 || escolha == 1){
+        sprintf(query, "Update aluno set %s = '%s' where ra = %d", menu[(escolha - 1)], new_name, ra);
+    }
+    else{
+        sprintf(query, "Update aluno set %s = %s where ra = %d", menu[(escolha - 1)], new_name, ra);
+    }
     
     if(mysql_query(conexao, query)){
         erro(conexao);
     }
-    
+    else{
+        printf("aluno alterado")
+    }
+
 }
 int seach_aluno(MYSQL *conexao){ // procura na tabela aluno
     MYSQL_RES *res;
@@ -216,12 +249,15 @@ int main(){
         case 3:
             seach_aluno(conexao);
             break;
+        case 4:
+            update(conexao);
+            break;
         default:
             break;
         }
     }
     else if(acesso_login == 1){
-        // codigo aqui do aluno fazer as atividade e avaliaçoes
+        printf("\nbem vindo %s \n", user.nome);
     }
     else{
     }
