@@ -55,7 +55,7 @@ int login(MYSQL *conexao){ // login no app
         printf("presionne enter caso for sua primeira fez acessando \ndigite sua senha: ");
         fgets(senha, 100, stdin);
         senha[strcspn(senha, "\n")] = "\0";
-        sprintf(query, "SELECT nome, senha FROM aluno WHERE ra = %i and senha = '%s'", RA, senha);
+        sprintf(query, "SELECT nome, senha, email FROM aluno WHERE ra = %i and senha = '%s'", RA, senha);
         break;
     case 2:
         printf("digite seu id: ");
@@ -77,6 +77,7 @@ int login(MYSQL *conexao){ // login no app
        verificacao_acesso(conexao, row[1]);
        sprintf(user.nome, row[0]);
        user.ra = row[1];
+       sprintf(user.email, row[2])
        return type_login;
     } 
     mysql_free_result(resultado);
@@ -310,14 +311,20 @@ int main(){
     else if(acesso_login == 1){
         printf("\nbem vindo %s \n", user.nome);
         printf("1  = informaçao do usuario \n");
-        printf("2 - rank \n");
-        printf("3 - Exercicios \n");
+        printf("2 - rank\n");
+        printf("3 - Exercicios\n");
         printf("5 - Avaliação \n");
         switch(navegacao)
         {
         case 1:
             
             break;
+        case 2:
+        
+            break;
+        case 3:
+            
+            break:
         default:
         
             break;
