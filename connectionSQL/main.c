@@ -12,7 +12,7 @@ struct user_now{
 
 struct user_now user;
 
-int verificacao_acesso(MYSQL *conexao, char *senha);
+int verificacao_acesso(MYSQL *conexao, char senha);
 
 void erro(MYSQL *conexao){
     fprintf(stderr,  "\n%s\n", mysql_error(conexao));
@@ -52,17 +52,19 @@ int login(MYSQL *conexao){ // login no app
     case 1:
         printf("digite seu RA: ");
         scanf("%i", &RA);
-        printf("presionne enter caso for sua primeira fez acessando \ndigite sua senha: ");
+        printf("presionne ENTER caso for sua primeira fez acessando \ndigite sua senha: ");
+        //scanf("%s", &senha);
+        getchar();
         fgets(senha, 100, stdin);
         senha[strcspn(senha, "\n")] = "\0";
-        sprintf(query, "SELECT nome, senha, email FROM aluno WHERE ra = %i and senha = '%s'", RA, senha);
+        sprintf(query, "SELECT nome, senha, email FROM aluno WHERE IDALUNO = %i and senha = '%s'", RA, senha);
         break;
     case 2:
         printf("digite seu id: ");
         scanf("%i", &RA);
         printf("digite sua senha: ");
         scanf("%s", &senha);
-        sprintf(query, "SELECT nome, senha FROM professor WHERE ra = %i and senha = '%s'", RA, senha);
+        sprintf(query, "SELECT nome, senha FROM professor WHERE IDALUNO = %i and senha = '%s'", RA, senha);
         break;
     default:
         break;
@@ -74,14 +76,18 @@ int login(MYSQL *conexao){ // login no app
     resultado = mysql_store_result(conexao);
     while((row = mysql_fetch_row(resultado)) != NULL)
     {
-       verificacao_acesso(conexao, row[1]);
        sprintf(user.nome, row[0]);
        user.ra = row[1];
-       sprintf(user.email, row[2])
-       return type_login;
+       sprintf(user.email, row[2]);
+       if(strcmp(senha, row[1]) == 1 && strcmp(RA, row[0] = 1)){
+            printf("%d, %S, %s", row[0], row[1], row[2]);
+            return type_login;
+       }
+    
     } 
     mysql_free_result(resultado);
 }
+
 
 void inserir_aluno(MYSQL *conexao){ // adicionar alunos na tabela
     char nome[250], email[250],senha[100], resp, query[750];
@@ -117,7 +123,7 @@ int remover_aluno(MYSQL *conexao){ // remove aluno
     for(int i = 0; i < count_remove; i++){
         printf("digite o RA do aluno: ");
         scanf("%i", &ra);
-        sprintf(r, "SELECT ra, nome FROM aluno WHERE ra = %i", ra);
+        sprintf(r, "SELECT ra, nome FROM aluno WHERE IDALUNO = %i", ra);
         if(mysql_query(conexao, query)){
             erro(conexao);
         }
@@ -127,7 +133,7 @@ int remover_aluno(MYSQL *conexao){ // remove aluno
             printf("nome: %s \n", row[1]);
         }
         mysql_free_result(res);
-        sprintf(r, "DELETE FROM aluno WHERE ra = %i", ra);
+        sprintf(r, "DELETE FROM aluno WHERE IDALUNO = %i", ra);
         printf("gostaria de apagar o aluno (s/n): ");
         scanf(" %c", &resp);
         if(resp == 'n'){
@@ -167,7 +173,7 @@ int update(MYSQL *conexao){
         }
     }while(escolha > 3);
     printf("Digite o Ra do aluno: ");
-    sprintf(query, "select ra, nome from aluno where ra = %i", ra);
+    sprintf(query, "select ra, nome from aluno where IDALUNO = %i", ra);
     if(mysql_query(conexao, query)){
         printf("aluno não encontrado");
         return 0;
@@ -204,10 +210,10 @@ int update(MYSQL *conexao){
         printf("comando invalidon tente novamente");
     }
     if((escolha == 0 || escolha == 1) && (conf_alt = 's')){
-        sprintf(query, "Update aluno set %s = '%s' where ra = %d", menu[(escolha - 1)], new_char, ra);
+        sprintf(query, "Update aluno set %s = '%s' where IDALUNO = %d", menu[(escolha - 1)], new_char, ra);
     }
     else if((escolha == 2 || escolha == 3) && (conf_alt = 's')){
-        sprintf(query, "Update aluno set %s = %s where ra = %d", menu[(escolha - 1)], new_char, ra);
+        sprintf(query, "Update aluno set %s = %s where IDALUNO = %d", menu[(escolha - 1)], new_char, ra);
     }
     if(mysql_query(conexao, query)){
         erro(conexao);
@@ -218,17 +224,15 @@ int update(MYSQL *conexao){
     }
 
 }
-void rank_aluno(MYSQL conexao){
-    
-}
 
 int seach_aluno(MYSQL *conexao){ // procura na tabela aluno
+
     MYSQL_RES *res;
     MYSQL_ROW *row;
     int resp, ra, turma;
     char query[750], nome[100];
     printf("1 - Turma \n");
-    printf("2 - Aluno \n");
+    printf("2 - RA \n");
     printf("3 - Nome  \n");
     printf("digite seu comando: ");
     scanf("%i", &resp);
@@ -236,17 +240,17 @@ int seach_aluno(MYSQL *conexao){ // procura na tabela aluno
     case 1:
         printf("Digite a turma que deseja procurar: ");
         scanf("%i", &turma);
-        sprintf(query, "SELECT ra, nome, email, idturma from aluno WHERE idturma = %i", turma);
+        sprintf(query, "SELECT ra, nome, email, idturma from aluno WHERE IDALUNO = %i", turma);
         break;
     case 2:
         printf("Digite o RA do aluno: ");
         scanf("%i", &ra);
-        sprintf(query, "SELECT ra, nome, email, idturma from aluno WHERE ra = %i", ra);
+        sprintf(query, "SELECT ra, nome, email, idturma from aluno WHERE IDALUNO = %i", ra);
         break;
     case 3:
         printf("Digite o nome do aluno: ");
         scanf("%s", &nome);
-        sprintf(query, "SELECT ra, nome, email, telefone, idturma from aluno WHERE nome LIKE '%%%s%%'", nome);
+        sprintf(query, "SELECT ra, nome, email, telefone, idturma from aluno WHERE UPPER(nome) LIKE UPPER('%%%s%%')", nome);
         break;
     default:
         printf("Comando invalido");
@@ -265,16 +269,209 @@ int seach_aluno(MYSQL *conexao){ // procura na tabela aluno
     mysql_free_result(res);
 }
 
-int verificacao_acesso(MYSQL *conexao, char *senha){ // verificar se é o primeiro acesso
-    if(senha == ""){
+int verificacao_acesso(MYSQL *conexao, char senha){ // verificar se é o primeiro acesso
+    if(senha == NULL){
+        fflush(stdin);
         char senha[100];
         printf("seja bem vindo %s", user.nome);
         printf("vejo que seu primeiro acesso");
-        printf("Poderia insira sua senha:  ");
-        scanf("%s", &senha);
+        printf("Poderia insira sua senha: ");
+        scanf("%s ", &senha);
         return 0;
     }
 }
+void rank(MYSQL *conexao){
+    MYSQL_RES res;
+    MYSQL_ROW row;
+    
+}
+
+void exercicios() {
+    int escolha_modulo, resposta, acertos = 0;
+    char enter;
+    printf("\nEscolha o módulo de exercícios:\n");
+    printf("1 - Operadores Lógicos\n");
+    printf("2 - Operadores Matemáticos\n");
+    printf("3 - Alocação de Variável e Ponteiro\n");
+    printf("4 - if-else\n");
+    printf("5 - Loops\n");
+    printf("Digite o número da opção desejada: ");
+    scanf("%d", &escolha_modulo);
+    while((enter = getchar()) != '\n' && enter != EOF);
+
+    switch(escolha_modulo) {
+    case 1:
+        printf("\nExercício 1:\nO resultado de (1 && 0) é:\n1) Verdadeiro\n2) Falso\n3) 2\nResposta: ");
+        scanf("%d", &resposta); if(resposta==2) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 2:\nO resultado de (!1 || 1) é:\n1) 0\n2) 1\n3) -1\nResposta: ");
+        scanf("%d", &resposta); if(resposta==2) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 3:\nO resultado de (0 || 0) é:\n1) 0\n2) 1\n3) -1\nResposta: ");
+        scanf("%d", &resposta); if(resposta==1) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 4:\nO resultado de !(1 && 1) é:\n1) 0\n2) 1\n3) -1\nResposta: ");
+        scanf("%d", &resposta); if(resposta==1) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 5:\nO resultado de (1 || (0 && 1)) é:\n1) 0\n2) 1\n3) -1\nResposta: ");
+        scanf("%d", &resposta); if(resposta==2) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+        break;
+
+    case 2:
+        printf("\nExercício 1:\nO valor de 2 + 3 * 4 é:\n1) 20\n2) 14\n3) 12\nResposta: ");
+        scanf("%d", &resposta); if(resposta==2) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 2:\nO valor de 10 / 2 + 7 é:\n1) 12\n2) 5\n3) 17\nResposta: ");
+        scanf("%d", &resposta); if(resposta==1) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 3:\nO valor de 10 %% 3 é:\n1) 1\n2) 2\n3) 3\nResposta: ");
+        scanf("%d", &resposta); if(resposta==1) acertos++;  // ✅ Corrigido!
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 4:\nO valor de 5 - 8 * 2 é:\n1) -11\n2) -16\n3) 6\nResposta: ");
+        scanf("%d", &resposta); if(resposta==1) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 5:\nO valor de 2 * 2 * 2 é:\n1) 6\n2) 8\n3) 4\nResposta: ");
+        scanf("%d", &resposta); if(resposta==2) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+        break;
+
+    case 3:
+        printf("\nExercício 1:\nQual comando aloca memória dinamicamente em C?\n1) malloc\n2) alloc\n3) calloc\nResposta: ");
+        scanf("%d", &resposta); if(resposta==1) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 2:\nint *p; int x=10; p = &x; O valor de *p é:\n1) 10\n2) 0\n3) p\nResposta: ");
+        scanf("%d", &resposta); if(resposta==1) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 3:\nDepois de int *p = NULL; p == NULL é:\n1) verdadeiro\n2) falso\n3) erro\nResposta: ");
+        scanf("%d", &resposta); if(resposta==1) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 4:\nPara liberar memória alocada dinamicamente, usa-se:\n1) free\n2) delete\n3) release\nResposta: ");
+        scanf("%d", &resposta); if(resposta==1) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 5:\nO operador & em C retorna:\n1) valor da variável\n2) endereço da variável\n3) nada\nResposta: ");
+        scanf("%d", &resposta); if(resposta==2) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+        break;
+
+    case 4:
+        printf("\nExercício 1:\nO que será impresso?\nint x=5;\nif(x>2) printf(\"A\"); else printf(\"B\");\n1) A\n2) B\n3) nada\nResposta: ");
+        scanf("%d", &resposta); if(resposta==1) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 2:\nif(0) printf(\"X\"); else printf(\"Y\");\n1) X\n2) Y\n3) XY\nResposta: ");
+        scanf("%d", &resposta); if(resposta==2) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 3:\nint a=3; if(a==3) printf(\"Certo\"); else printf(\"Errado\");\n1) Certo\n2) Errado\n3) nada\nResposta: ");
+        scanf("%d", &resposta); if(resposta==1) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 4:\nif(2<1) printf(\"Sim\"); else printf(\"Nao\");\n1) Sim\n2) Nao\n3) nada\nResposta: ");
+        scanf("%d", &resposta); if(resposta==2) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 5:\nint b=10; if(b!=10) printf(\"A\"); else printf(\"B\");\n1) A\n2) B\n3) nada\nResposta: ");
+        scanf("%d", &resposta); if(resposta==2) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+        break;
+
+    case 5:
+        printf("\nExercício 1:\nQuantas vezes o código executa o printf?\nfor(int i=0; i<3; i++) printf(\"Oi\");\n1) 1\n2) 2\n3) 3\nResposta: ");
+        scanf("%d", &resposta); if(resposta==3) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 2:\nint i=0; while(i<2){i++;} Quantas vezes roda?\n1) 1\n2) 2\n3) 3\nResposta: ");
+        scanf("%d", &resposta); if(resposta==2) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 3:\nO que faz o comando break dentro de um loop?\n1) Continua o loop\n2) Sai do loop\n3) Repete\nResposta: ");
+        scanf("%d", &resposta); if(resposta==2) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 4:\nQual o valor final de x?\nint x=0; for(int i=0;i<4;i++) x=x+2;\n1) 4\n2) 6\n3) 8\nResposta: ");
+        scanf("%d", &resposta); if(resposta==3) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+
+        printf("\nExercício 5:\nQual comando faz o loop pular para a próxima iteração?\n1) end\n2) jump\n3) continue\nResposta: ");
+        scanf("%d", &resposta); if(resposta==3) acertos++;
+        while((enter = getchar()) != '\n' && enter != EOF);
+        break;
+
+    default:
+        printf("\nOpção inválida!\n");
+        return;
+    }
+    printf("\nVocê acertou %d de 5 questões!\n", acertos);
+}
+
+
+// ==================== Avaliação ======================
+void avaliacao() {
+    int resposta, acertos = 0;
+    char enter;
+
+    printf("\nAvaliação de Operadores Lógicos\n");
+    printf("Pergunta 1: (4 < 3) || (2 == 2) resulta em:\n1) 0\n2) 1\n3) 2\nResposta: ");
+    scanf("%d", &resposta); if(resposta==2) acertos++;
+    while((enter = getchar()) != '\n' && enter != EOF);
+
+    printf("\nAvaliação de Operadores Matemáticos\n");
+    printf("Pergunta 2: O valor de (8 / 2) + 1 é:\n1) 3\n2) 4\n3) 5\nResposta: ");
+    scanf("%d", &resposta); if(resposta==3) acertos++;
+    while((enter = getchar()) != '\n' && enter != EOF);
+
+    printf("\nAvaliação de Alocação de Variável\n");
+    printf("Pergunta 3: Qual declaração está correta para um inteiro chamado 'x'?\n1) int x;\n2) inteiro x;\n3) var x;\nResposta: ");
+    scanf("%d", &resposta); if(resposta==1) acertos++;
+    while((enter = getchar()) != '\n' && enter != EOF);
+
+    printf("\nAvaliação de if-else\n");
+    printf("Pergunta 4: O que acontece se a condição do if for falsa?\n1) O bloco if executa\n2) O else executa\n3) Nada executa\nResposta: ");
+    scanf("%d", &resposta); if(resposta==2) acertos++;
+    while((enter = getchar()) != '\n' && enter != EOF);
+
+    printf("\nAvaliação de Loops\n");
+    printf("Pergunta 5: Quantas vezes o while abaixo executa?\nint i=0; while(i<2){i++;}\n1) 0\n2) 1\n3) 2\nResposta: ");
+    scanf("%d", &resposta); if(resposta==3) acertos++;
+    while((enter = getchar()) != '\n' && enter != EOF);
+
+    printf("\nAvaliação de Ponteiro\n");
+    printf("Pergunta 6: O que faz o operador & em C?\n1) Soma dois valores\n2) Retorna o endereço de memória da variável\n3) Multiplica por 2\nResposta: ");
+    scanf("%d", &resposta); if(resposta==2) acertos++;
+    while((enter = getchar()) != '\n' && enter != EOF);
+
+    printf("\nAvaliação de String\n");
+    printf("Pergunta 7: Como copiar uma string para outra em C?\n1) copy(dest, src);\n2) strcpy(dest, src);\n3) dest = src;\nResposta: ");
+    scanf("%d", &resposta); if(resposta==2) acertos++;
+    while((enter = getchar()) != '\n' && enter != EOF);
+
+    printf("\nAvaliação de Função\n");
+    printf("Pergunta 8: Como declarar uma função que retorna int e recebe float?\n1) int nome(float x);\n2) float nome(int x);\n3) void nome(float x);\nResposta: ");
+    scanf("%d", &resposta); if(resposta==1) acertos++;
+    while((enter = getchar()) != '\n' && enter != EOF);
+
+    printf("\nAvaliação de Struct\n");
+    printf("Pergunta 9: Como declarar uma struct chamada Carro com campo int ano?\n1) struct Carro { int ano; };\n2) Carro { int ano; };\n3) struct Carro int ano;\nResposta: ");
+    scanf("%d", &resposta); if(resposta==1) acertos++;
+    while((enter = getchar()) != '\n' && enter != EOF);
+
+    printf("\nVocê acertou %d de 9 questões!\n", acertos);
+}
+
+
 
 int main(){
     MYSQL *conexao = obterconexao();
@@ -289,6 +486,7 @@ int main(){
             printf("5 - sair \n");
             printf("digite seu comando: ");
             scanf("%i", &navegacao);
+            while(getchar()!='\n');
             switch (navegacao)
             {
             case 1:
@@ -309,26 +507,39 @@ int main(){
         }while (navegacao != 5);
     }
     else if(acesso_login == 1){
-        printf("\nbem vindo %s \n", user.nome);
-        printf("1  = informaçao do usuario \n");
-        printf("2 - rank\n");
-        printf("3 - Exercicios\n");
-        printf("5 - Avaliação \n");
-        switch(navegacao)
-        {
-        case 1:
-            
-            break;
-        case 2:
-        
-            break;
-        case 3:
-            
-            break:
-        default:
-        
-            break;
-        }
+        do {
+            printf("\nbem vindo %s \n", user.nome);
+            printf("1  = informaçao do usuario \n");
+            printf("2 - rank \n");
+            printf("3 - Exercicios \n");
+            printf("5 - Avaliação \n");
+            printf("6 - sair \n");
+            printf("digite seu comando: ");
+            scanf("%i", &navegacao);
+            while(getchar()!='\n');
+            switch(navegacao)
+            {
+            case 1:
+                printf("Nome: %s\n", user.nome);
+                printf("RA: %d\n", user.ra);
+                break;
+            case 2:
+                printf("Ranking ainda não implementado.\n");
+                break;
+            case 3:
+                exercicios();
+                break;
+            case 5:
+                avaliacao();
+                break;
+            case 6:
+                printf("Saindo...\n");
+                break;
+            default:
+                printf("Comando inválido.\n");
+                break;
+            }
+        } while (navegacao != 6);
     }
     mysql_close(conexao);
     mysql_commit(conexao);
