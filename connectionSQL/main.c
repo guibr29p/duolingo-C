@@ -3,7 +3,9 @@
 #include <string.h>
 #include <winsock2.h>
 #include <windows.h>
+#include <locale.h>
 #include "mysql\include\mysql.h"
+
 struct user_now{
     int ra;
     char nome[250];
@@ -41,23 +43,35 @@ MYSQL *__stdcall obterconexao(){
 int login(MYSQL *conexao){ // login no app
     MYSQL_RES *resultado;
     MYSQL_ROW row;
+    char nome_admin[] = "admin";
+    char senha_admin[] = "admin";
     int encontrado = 0, RA, type_login;
     char query[750], senha[100];
     printf("1 - aluno \n");
     printf("2 - proferssor \n");
     printf("logar como: ");
     scanf("%d", &type_login);
+    if(type_login == 3){
+        printf("digite a senha: ");
+        scanf("%s", &senha);
+        if (strcmp(senha, senha_admin) == 0)
+        {
+            return 2;
+        }
+        
+        
+    }
     switch (type_login)
     {
     case 1:
         printf("digite seu RA: ");
         scanf("%i", &RA);
-        printf("presionne ENTER caso for sua primeira fez acessando \ndigite sua senha: ");
-        //scanf("%s", &senha);
-        getchar();
-        fgets(senha, 100, stdin);
-        senha[strcspn(senha, "\n")] = "\0";
-        sprintf(query, "SELECT nome, senha, email FROM aluno WHERE IDALUNO = %i and senha = '%s'", RA, senha);
+        //printf("presionne ENTER caso for sua primeira fez acessando \ndigite sua senha: ");
+        printf("digite sua senha: ");
+        scanf(" %s", &senha);
+        //fgets(senha, 100, stdin);
+        //senha[strcspn(senha, "\n")] = "\0";
+        sprintf(query, "SELECT idaluno, nome, senha, email FROM aluno WHERE IDALUNO = %i and senha = '%s'", RA, senha);
         break;
     case 2:
         printf("digite seu id: ");
@@ -73,35 +87,39 @@ int login(MYSQL *conexao){ // login no app
     if(mysql_query(conexao, query)){
         erro(conexao);
     }
-    resultado = mysql_store_result(conexao);
+    resultado = mysql_use_result(conexao);
     while((row = mysql_fetch_row(resultado)) != NULL)
     {
-       sprintf(user.nome, row[0]);
-       user.ra = row[1];
-       sprintf(user.email, row[2]);
-       if(strcmp(senha, row[1]) == 1 && strcmp(RA, row[0] = 1)){
-            printf("%d, %S, %s", row[0], row[1], row[2]);
-            return type_login;
-       }
-    
+        strcat(user.nome, row[1]);
+        user.ra = row[0];
+        strcat(user.email, row[3]);
+        mysql_free_result(resultado);
+        return type_login;
     } 
     mysql_free_result(resultado);
+    return 0;
+    
 }
 
 
 void inserir_aluno(MYSQL *conexao){ // adicionar alunos na tabela
     char nome[250], email[250],senha[100], resp, query[750];
-    int telefone, cont_loop;
+    int telefone, cont_loop, i=0;
     fflush(stdin);
     printf("quantos alunos gostaria de inserir?: ");
-    sprintf("%d", &cont_loop);
-    for(int i = 1; i <= cont_loop; i++){
+    getchar();
+    sprintf("%i", &cont_loop);
+    do{
+        getchar();
         printf("insira o nome do aluno: ");
-        scanf("%s", &nome);
+        scanf(" %s", &nome);
+        getchar();
         printf("insira o email do aluno: ");
-        scanf("%s", &email);
+        scanf(" %s", &email);
+        getchar();
         printf("insira o telefone do aluno");
-        scanf("%i", &telefone);
+        scanf(" %i", &telefone);
+        getchar();
         sprintf(query, "INSERT INTO aluno(nome, email, telefone) VALUES ('%s', %s, %i)", nome, email, telefone);
         if(mysql_query(conexao, query)){
             erro(conexao);
@@ -109,7 +127,8 @@ void inserir_aluno(MYSQL *conexao){ // adicionar alunos na tabela
         else{
             printf("aluno cadastrado");
         }
-    }
+    }while(i < cont_loop);
+    
 }
 
 int remover_aluno(MYSQL *conexao){ // remove aluno
@@ -157,14 +176,14 @@ int update(MYSQL *conexao){
     const char *menu[] = {
         "nome", 
         "email",
-        "telefone",
+        "telf",
         "turma",
     };
     do{
         printf("1 - %s \n", menu[0]);
         printf("2 - %s \n", menu[1]);
-        printf("2 - %s \n", menu[2]);
-        printf("3 - %s \n", menu[3]);
+        printf("3 - telefone \n");
+        printf("4 - %s \n", menu[3]);
         printf("Digite o comando: ");
         scanf("%d", &escolha);
         if(escolha > 3){
@@ -172,8 +191,36 @@ int update(MYSQL *conexao){
             printf("comando invalido tente novamente");
         }
     }while(escolha > 3);
+    switch(escolha){
+        case 1:
+            printf("digite o novo nome: ");
+            getchar();
+            fgets(new_char, 250, stdin);
+            new_char[strcspn(new_char, "\n")] = '\0';
+            break;
+        case 2:
+            printf("digite o novo email: ");
+            getchar();
+            scanf("%s", &new_char);
+            break;
+        case 3:
+            printf("digite o novo telf do aluno: ");
+            getchar();
+            scanf("%d", &new_int);
+            break;
+        case 4:
+            printf("digite a nova turma do aluno: ");
+            getchar();
+            scanf("%d", &new_int);
+            break;
+        default:
+            system("clear");
+            printf("comando invalidon tente novamente");
+    }
     printf("Digite o Ra do aluno: ");
-    sprintf(query, "select ra, nome from aluno where IDALUNO = %i", ra);
+    getchar();
+    scanf(" %d", &ra);
+    sprintf(query, "select idaluno, nome from aluno where IDALUNO = %i", ra);
     if(mysql_query(conexao, query)){
         printf("aluno não encontrado");
         return 0;
@@ -184,36 +231,15 @@ int update(MYSQL *conexao){
         printf("Ra: %s, \nNome: %s \n", row[0], row[1]);
     }
     printf("comando: ");
+    getchar();
     scanf("%c", &conf_alt);
     mysql_free_result(res);
-    switch(escolha){
-    case 1:
-        printf("digite o novo nome: ");
-        fgets(new_char, 250, stdin);
-        new_char[strcspn(new_char, "\n")] = '\0';
-        break;
-    case 2:
-        printf("digite o novo email: ");
-        scanf("%s", &new_char);
-        break;
-    case 3:
-        printf("digite o novo telefone do aluno: ");
-        scanf("%d", &new_int);
-        break;
-        scanf("%d", &ra);
-    case 4:
-        printf("digite a nova turma do aluno: ");
-            scanf("%d", &new_int);
-            break;
-    default:
-        system("clear");
-        printf("comando invalidon tente novamente");
-    }
+    escolha -= 1;
     if((escolha == 0 || escolha == 1) && (conf_alt = 's')){
-        sprintf(query, "Update aluno set %s = '%s' where IDALUNO = %d", menu[(escolha - 1)], new_char, ra);
+        sprintf(query, "Update aluno set %s = '%s' where IDALUNO = %d", menu[(escolha)], new_char, ra);
     }
     else if((escolha == 2 || escolha == 3) && (conf_alt = 's')){
-        sprintf(query, "Update aluno set %s = %s where IDALUNO = %d", menu[(escolha - 1)], new_char, ra);
+        sprintf(query, "Update aluno set %s = %i where IDALUNO = %d", menu[(escolha)], new_int, ra);
     }
     if(mysql_query(conexao, query)){
         erro(conexao);
@@ -222,7 +248,6 @@ int update(MYSQL *conexao){
         printf("dados alterados");
         return 1;
     }
-
 }
 
 int seach_aluno(MYSQL *conexao){ // procura na tabela aluno
@@ -238,19 +263,20 @@ int seach_aluno(MYSQL *conexao){ // procura na tabela aluno
     scanf("%i", &resp);
     switch (resp){
     case 1:
-        printf("Digite a turma que deseja procurar: ");
-        scanf("%i", &turma);
-        sprintf(query, "SELECT ra, nome, email, idturma from aluno WHERE IDALUNO = %i", turma);
+        //printf("Digite a turma que deseja procurar: ");
+        //scanf("%i", &turma);
+        //sprintf(query, "SELECT idaluno, nome, email, idturma from aluno WHERE IDALUNO = %i", turma);
+        printf("manutenção");
         break;
     case 2:
         printf("Digite o RA do aluno: ");
         scanf("%i", &ra);
-        sprintf(query, "SELECT ra, nome, email, idturma from aluno WHERE IDALUNO = %i", ra);
+        sprintf(query, "SELECT idaluno, nome, email, idturma from aluno WHERE IDALUNO = %i", ra);
         break;
     case 3:
         printf("Digite o nome do aluno: ");
         scanf("%s", &nome);
-        sprintf(query, "SELECT ra, nome, email, telefone, idturma from aluno WHERE UPPER(nome) LIKE UPPER('%%%s%%')", nome);
+        sprintf(query, "SELECT idaluno, nome, email, telf, idturma from aluno WHERE UPPER(nome) LIKE UPPER('%%%s%%')", nome);
         break;
     default:
         printf("Comando invalido");
@@ -259,12 +285,10 @@ int seach_aluno(MYSQL *conexao){ // procura na tabela aluno
     if(mysql_query(conexao, query)){
         erro(conexao);
     }
-    res = mysql_use_result(conexao);
-    if((row = mysql_fetch_row(res)) != NULL){
-        printf("Ra        |Nome                         |telefone                       |email                     |idturma\n");
-    }
+    res = mysql_store_result(conexao);
+    printf("Ra        |Nome                         |telefone                       |email                     |idturma\n");
     while((row = mysql_fetch_row(res)) != NULL){
-        printf("%s   |%s     |%s    |%s  \n", row[0], row[1], row[2], row[3]);  
+        printf("%s   |%s     |%i    |%s  |%i \n", row[0], row[1], row[2], row[3], row[4]);  
     }
     mysql_free_result(res);
 }
@@ -287,6 +311,7 @@ void rank(MYSQL *conexao){
 }
 
 void exercicios() {
+    setlocale(LC_ALL, "pt_BR");
     int escolha_modulo, resposta, acertos = 0;
     char enter;
     printf("\nEscolha o módulo de exercícios:\n");
@@ -297,12 +322,12 @@ void exercicios() {
     printf("5 - Loops\n");
     printf("Digite o número da opção desejada: ");
     scanf("%d", &escolha_modulo);
-    while((enter = getchar()) != '\n' && enter != EOF);
+    while((enter = getchar()) != '\n' && enter != EOF); //limpa buffer
 
     switch(escolha_modulo) {
-    case 1:
-        printf("\nExercício 1:\nO resultado de (1 && 0) é:\n1) Verdadeiro\n2) Falso\n3) 2\nResposta: ");
-        scanf("%d", &resposta); if(resposta==2) acertos++;
+    case 1: //operadores lógicos
+        printf("\nExercício 1:\nO resultado de (1 && 0) é:\n1) Verdadeiro \n2) Falso\n3) 2\nResposta: ");
+        scanf("%d", &resposta); if(resposta==1) acertos++;
         while((enter = getchar()) != '\n' && enter != EOF);
 
         printf("\nExercício 2:\nO resultado de (!1 || 1) é:\n1) 0\n2) 1\n3) -1\nResposta: ");
@@ -322,7 +347,7 @@ void exercicios() {
         while((enter = getchar()) != '\n' && enter != EOF);
         break;
 
-    case 2:
+    case 2: //operadores matemáticos
         printf("\nExercício 1:\nO valor de 2 + 3 * 4 é:\n1) 20\n2) 14\n3) 12\nResposta: ");
         scanf("%d", &resposta); if(resposta==2) acertos++;
         while((enter = getchar()) != '\n' && enter != EOF);
@@ -332,7 +357,7 @@ void exercicios() {
         while((enter = getchar()) != '\n' && enter != EOF);
 
         printf("\nExercício 3:\nO valor de 10 %% 3 é:\n1) 1\n2) 2\n3) 3\nResposta: ");
-        scanf("%d", &resposta); if(resposta==1) acertos++;  // ✅ Corrigido!
+        scanf("%d", &resposta); if(resposta==2) acertos++;
         while((enter = getchar()) != '\n' && enter != EOF);
 
         printf("\nExercício 4:\nO valor de 5 - 8 * 2 é:\n1) -11\n2) -16\n3) 6\nResposta: ");
@@ -344,7 +369,7 @@ void exercicios() {
         while((enter = getchar()) != '\n' && enter != EOF);
         break;
 
-    case 3:
+    case 3: //alocação de variável e ponteiro
         printf("\nExercício 1:\nQual comando aloca memória dinamicamente em C?\n1) malloc\n2) alloc\n3) calloc\nResposta: ");
         scanf("%d", &resposta); if(resposta==1) acertos++;
         while((enter = getchar()) != '\n' && enter != EOF);
@@ -366,7 +391,7 @@ void exercicios() {
         while((enter = getchar()) != '\n' && enter != EOF);
         break;
 
-    case 4:
+    case 4: //if-else
         printf("\nExercício 1:\nO que será impresso?\nint x=5;\nif(x>2) printf(\"A\"); else printf(\"B\");\n1) A\n2) B\n3) nada\nResposta: ");
         scanf("%d", &resposta); if(resposta==1) acertos++;
         while((enter = getchar()) != '\n' && enter != EOF);
@@ -388,7 +413,7 @@ void exercicios() {
         while((enter = getchar()) != '\n' && enter != EOF);
         break;
 
-    case 5:
+    case 5: //loops
         printf("\nExercício 1:\nQuantas vezes o código executa o printf?\nfor(int i=0; i<3; i++) printf(\"Oi\");\n1) 1\n2) 2\n3) 3\nResposta: ");
         scanf("%d", &resposta); if(resposta==3) acertos++;
         while((enter = getchar()) != '\n' && enter != EOF);
@@ -417,12 +442,11 @@ void exercicios() {
     printf("\nVocê acertou %d de 5 questões!\n", acertos);
 }
 
-
 // ==================== Avaliação ======================
 void avaliacao() {
     int resposta, acertos = 0;
     char enter;
-
+    setlocale(LC_ALL, "pt_BR");
     printf("\nAvaliação de Operadores Lógicos\n");
     printf("Pergunta 1: (4 < 3) || (2 == 2) resulta em:\n1) 0\n2) 1\n3) 2\nResposta: ");
     scanf("%d", &resposta); if(resposta==2) acertos++;
@@ -475,10 +499,12 @@ void avaliacao() {
 
 int main(){
     MYSQL *conexao = obterconexao();
+    setlocale(LC_ALL, "Portuguese_Brazil.UTF-8");
     int navegacao, acesso_login;
     acesso_login = login(conexao);
     if(acesso_login == 2){
         do{
+            printf("\nbem vindo %s \n", user.nome);
             printf("1 - insirir aluno  \n");
             printf("2 - remover aluno  \n");
             printf("3 - procular aluno \n");
@@ -500,6 +526,9 @@ int main(){
                 break;
             case 4:
                 update(conexao);
+                break;
+            case 5:
+                printf("Saindo...\n");
                 break;
             default:
                 break;
@@ -540,6 +569,9 @@ int main(){
                 break;
             }
         } while (navegacao != 6);
+    }
+    else{
+        printf("aluno não encontrado");
     }
     mysql_close(conexao);
     mysql_commit(conexao);
