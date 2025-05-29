@@ -123,7 +123,7 @@ void inserir_aluno(MYSQL *conexao){ // adicionar alunos na tabela
     scanf("%i", &info[2]);
     sprintf(query, "INSERT INTO aluno(idturma, nome, email, telf, semestre) VALUES (%i,'%s', '%s', %i, %i)",info[1], nome, email, info[0], info[2]);
     if(mysql_query(conexao, query)){
-        erro(conexao);
+        printf("aluno não inserido");
     }
     else{
         printf("aluno cadastrado");
@@ -182,7 +182,7 @@ int update(MYSQL *conexao){
         "nome", 
         "email",
         "telf",
-        "turma",
+        "idturma",
     };
     do{
         printf("1 - %s \n", menu[0]);
@@ -192,10 +192,9 @@ int update(MYSQL *conexao){
         printf("Digite o comando: ");
         scanf("%d", &escolha);
         if(escolha > 3){
-            system("clear");
             printf("comando invalido tente novamente");
         }
-    }while(escolha > 3);
+    }while(escolha > 4);
     switch(escolha){
         case 1:
             printf("digite o novo nome: ");
@@ -219,7 +218,6 @@ int update(MYSQL *conexao){
             scanf("%d", &new_int);
             break;
         default:
-            system("clear");
             printf("comando invalidon tente novamente");
     }
     printf("Digite o Ra do aluno: ");
@@ -256,7 +254,6 @@ int update(MYSQL *conexao){
 }
 
 int seach_aluno(MYSQL *conexao){ // procura na tabela aluno
-
     MYSQL_RES *res;
     MYSQL_ROW *row;
     int resp, ra, turma;
@@ -506,6 +503,7 @@ int main(){
     MYSQL *conexao = obterconexao();
     setlocale(LC_ALL, "Portuguese_Brazil.UTF-8");
     int navegacao, acesso_login;
+    int *n = &navegacao;
     acesso_login = login(conexao);
     if(acesso_login == 2){
         do{
@@ -516,7 +514,7 @@ int main(){
             printf("4 - Alterar dados dos alunos \n");
             printf("5 - sair \n");
             printf("digite seu comando: ");
-            scanf("%i", &navegacao);
+            scanf("%i", n);
             while(getchar()!='\n');
             switch (navegacao)
             {
