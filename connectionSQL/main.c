@@ -104,30 +104,30 @@ int login(MYSQL *conexao){ // login no app
 
 void inserir_aluno(MYSQL *conexao){ // adicionar alunos na tabela
     char nome[250], email[250],senha[100], resp, query[750];
-    int telefone, cont_loop, i=0;
+    int telefone, cont_loop, id;
+    int info[3];
     fflush(stdin);
-    printf("quantos alunos gostaria de inserir?: ");
+    printf("insira o nome do aluno: ");
+    fgets(nome, 250, stdin);
+    nome[strcspn(nome, "\n")] = '\0';
+    printf("insira o email do aluno: ");
+    scanf(" %s", &email);
     getchar();
-    sprintf("%i", &cont_loop);
-    do{
-        getchar();
-        printf("insira o nome do aluno: ");
-        scanf(" %s", &nome);
-        getchar();
-        printf("insira o email do aluno: ");
-        scanf(" %s", &email);
-        getchar();
-        printf("insira o telefone do aluno");
-        scanf(" %i", &telefone);
-        getchar();
-        sprintf(query, "INSERT INTO aluno(nome, email, telefone) VALUES ('%s', %s, %i)", nome, email, telefone);
-        if(mysql_query(conexao, query)){
-            erro(conexao);
-        }
-        else{
-            printf("aluno cadastrado");
-        }
-    }while(i < cont_loop);
+    printf("insira o telefone do aluno: ");
+    scanf(" %i", &info[0]);
+    getchar();
+    printf("digite o idturma: ");
+    scanf("%i", &info[1]);
+    getchar();
+    printf("digite o semestre do aluno: ");
+    scanf("%i", &info[2]);
+    sprintf(query, "INSERT INTO aluno(idturma, nome, email, telf, semestre) VALUES (%i,'%s', '%s', %i, %i)",info[1], nome, email, info[0], info[2]);
+    if(mysql_query(conexao, query)){
+        erro(conexao);
+    }
+    else{
+        printf("aluno cadastrado");
+    }
     
 }
 
@@ -142,7 +142,11 @@ int remover_aluno(MYSQL *conexao){ // remove aluno
     for(int i = 0; i < count_remove; i++){
         printf("digite o RA do aluno: ");
         scanf("%i", &ra);
-        sprintf(r, "SELECT ra, nome FROM aluno WHERE IDALUNO = %i", ra);
+        sprintf(r, "update avaliacao set idaluno = NULL where idaluno = %i", ra, ra);
+        if(mysql_query(conexao, query)){
+            erro(conexao);
+        }
+        sprintf(r, "SELECT idaluno, nome FROM aluno WHERE IDALUNO = %i", ra);
         if(mysql_query(conexao, query)){
             erro(conexao);
         }
@@ -161,6 +165,7 @@ int remover_aluno(MYSQL *conexao){ // remove aluno
         }
         else if(mysql_query(conexao, query)){
             printf("erro aluno nao foi removido \n");
+            erro(conexao);
         }
         else{
             printf("aluno romovido \n");
